@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     // my version
     rc = stephens_device(from, to, 1000);
     check(rc == 1000, "Stephen's device failed: %d", rc);
-    cehck(valid_copy(to, 1000, 'x'), "Stephen's device failed copy.");
+    check(valid_copy(to, 1000, 'x'), "Stephen's device failed copy.");
 
     return 0;
 error:
