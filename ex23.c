@@ -19,7 +19,7 @@ char duffs_device(char *from, char *to, int count)
     {
         int n = (count + 7) / 8;
 
-        switch (count & 8)
+        switch (count % 8)
         {
         case 0:
             do
@@ -50,6 +50,7 @@ int stephens_device(char *from, char *to, int count)
 {
     {
         int n = (count + 7) / 8;
+
         switch (count % 8)
         {
         case 0:
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
 
     // duffs version
     rc = duffs_device(from, to, 1000);
-    check(rc = 1000, "Duff's device failed: %d", rc);
+    check(rc == 1000, "Duff's device failed: %d", rc);
     check(valid_copy(to, 1000, 'x'), "Duff's device failed copy.");
 
     // reset
