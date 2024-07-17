@@ -30,14 +30,14 @@ int main(int argc, char *argv[])
     int i = 0;
     char *in = NULL;
 
-    printf("What's your First Name?");
+    printf("What's your First Name? ");
     in = fgets(you.first_name, MAX_DATA - 1, stdin);
     check(in != NULL, "Failed to read first name.");
-    printf("What's your Last Name?");
+    printf("What's your Last Name? ");
     in = fgets(you.last_name, MAX_DATA - 1, stdin);
     check(in != NULL, "Failed to read last name.");
 
-    printf("How old are you?");
+    printf("How old are you? ");
     int rc = fscanf(stdin, "%d", &you.age);
     check(rc > 0, "You have to enter a number.");
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
     printf("> ");
 
     int eyes = -1;
-    rc = fscan(stdin, "%d", &eyes);
+    rc = fscanf(stdin, "%d", &eyes);
     check(rc > 0, "You have to enter a number.");
 
     you.eyes = eyes - 1;
