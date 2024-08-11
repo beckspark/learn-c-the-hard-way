@@ -5,6 +5,8 @@
  * 3. Return lines that contain the text, along with the line itself.
  **/
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 char *get_home_dir()
 {
@@ -25,19 +27,20 @@ int read_logfind()
     // Get the home directory
     char *home_dir = get_home_dir();
 
-    // Allocate memory for the full path
+    // Allocate memory for the ~/.logfind full path
     size_t home_len = strlen(home_dir);
-    char *full_path = malloc(home_len + strlen(".logfile") + 2);
+    char *full_path = malloc(home_len + strlen(".logfind") + 2);
     if (full_path == NULL)
     {
-        fprintf(stderr, "Could not allocate memory for path to ~/.logfile\n");
+        fprintf(stderr, "Could not allocate memory for path to ~/.logfind\n");
         return 1;
     }
 
-    sprintf(full_path, "%s/.logfile", home_dir);
+    // Construct the full path
+    snprintf(full_path, home_len + strlen(".logfind") + 2, "%s/.logfind\n", home_dir);
 
     // Open logfind
-    fp = fopen(home_dir, "r");
+    fp = fopen(full_path, "r");
 
     while (fgets(buffer, sizeof(buffer), fp) != NULL)
     {
