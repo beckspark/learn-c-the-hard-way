@@ -21,10 +21,12 @@ char *get_home_dir()
     return home;
 }
 
-char *get_full_path() {
+char *get_full_path()
+{
     // Get the home directory
     char *home_dir = get_home_dir();
-    if (home_dir == NULL) {
+    if (home_dir == NULL)
+    {
         return NULL;
     }
 
@@ -46,7 +48,8 @@ char *get_full_path() {
 char **read_logfind(const char *filename, size_t *num_lines_ptr)
 {
     FILE *fp = fopen(filename, "r");
-    if (fp == NULL) {
+    if (fp == NULL)
+    {
         fprintf(stderr, "Error opening file: %s\n", filename);
         return NULL;
     }
@@ -57,15 +60,18 @@ char **read_logfind(const char *filename, size_t *num_lines_ptr)
     size_t capacity = 0;
 
     char line[MAX_LINE_LENGTH];
-    while(fgets(line, MAX_LINE_LENGTH, fp)) {
+    while (fgets(line, MAX_LINE_LENGTH, fp))
+    {
         // Remove newline
         line[strcspn(line, "\n")] = '\0';
 
         // Re-allocate memory if necessary
-        if (num_lines >= capacity) {
+        if (num_lines >= capacity)
+        {
             capacity = capacity ? capacity * 2 : 16;
             lines = realloc(lines, capacity * sizeof(char *));
-            if (lines == NULL) {
+            if (lines == NULL)
+            {
                 fprintf(stderr, "Error re-allocating memory.\n");
                 fclose(fp);
                 return NULL;
@@ -87,27 +93,56 @@ char **read_logfind(const char *filename, size_t *num_lines_ptr)
     return lines;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
+    char *search_string = NULL;
+
+    // Find the -o flag, store the search_string
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-o") == 0)
+        {
+            if (i + 1 < argc)
+            {
+                search_string = argv[i + 1];
+                break;
+            }
+            else
+            {
+                fprintf(stderr, "Error: no value passed after -o flag.\n");
+                return 1;
+            }
+        }
+        else
+        {
+            fprintf(stderr, "Error: -o flag not passed.\n");
+            return 1;
+        }
+    }
+
     char *full_path = get_full_path();
-    if (full_path == NULL) {
+    if (full_path == NULL)
+    {
         return 1;
     }
 
     size_t num_lines;
     char **lines = read_logfind(full_path, &num_lines);
-    if (lines == NULL) {
+    if (lines == NULL)
+    {
         free(full_path);
         return 1;
     }
 
     // Print lines
-    for (size_t i = 0; i < num_lines; i++) {
+    for (size_t i = 0; i < num_lines; i++)
+    {
         printf("%s\n", lines[i]);
     }
 
     // Free allocated memory
-    for (size_t i = 0; i < num_lines; i++) {
+    for (size_t i = 0; i < num_lines; i++)
+    {
         free(lines[i]);
     }
     free(lines);
