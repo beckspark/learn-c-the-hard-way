@@ -95,8 +95,15 @@ char **read_logfind(const char *filename, size_t *num_lines_ptr)
 
 int main(int argc, char *argv[])
 {
-    char *search_string = NULL;
+    // Usage message if no argument is passed
+    if (argc == 1)
+    {
+        fprintf(stderr, "Usage: %s -o <search_string>\n", argv[0]);
+        fprintf(stderr, "Search for lines containing the string within log files defined in ~/.logfind\n");
+        return 1;
+    }
 
+    char *search_string = NULL;
     // Find the -o flag, store the search_string
     for (int i = 1; i < argc; i++)
     {
@@ -137,7 +144,7 @@ int main(int argc, char *argv[])
     // Print lines
     for (size_t i = 0; i < num_lines; i++)
     {
-        printf("%s\n", lines[i]);
+        printf("Searching file: %s for search string: %s\n", lines[i], search_string);
     }
 
     // Free allocated memory
