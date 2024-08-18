@@ -141,10 +141,29 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Print lines
+    // Print matched lines within each file
     for (size_t i = 0; i < num_lines; i++)
     {
-        printf("Searching file: %s for search string: %s\n", lines[i], search_string);
+        FILE *fp = fopen(lines[i], "r");
+        if (fp == NULL)
+        {
+            fprintf(stderr, "Error opening file: %s\n", lines[i]);
+            continue; // Move to the next file
+        }
+        printf("[SEARCHING FILE]: %s for search string: %s\n", lines[i], search_string);
+
+        int line_number = 1; // Initialize line number
+        char line[MAX_LINE_LENGTH];
+        while (fgets(line, MAX_LINE_LENGTH, fp))
+        {
+            if (strstr(line, search_string) != NULL)
+            {
+                printf("[MATCH FOUND]: %s, Line %d: \"%s\"\n", lines[i], line_number, line);
+            }
+            line_number++;
+        }
+
+        fclose(fp);
     }
 
     // Free allocated memory
