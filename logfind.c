@@ -1,8 +1,17 @@
 /**
  * Logfind -- search for specific phrases in log files.
- * 1. Read the ~/.logfind file.
- * 2. Take each file, and search for the text.
- * 3. Return lines that contain the text, along with the line itself.
+ *  1. This tool takes any sequence of words and assumes I mean
+ * “and” for them. So logfind zedshaw smart guy will find
+ * all files that have zedshaw and smart and guy in them.
+ * 2. It takes an optional argument of -o if the parameters are
+ * meant to be or logic.
+ * 3. It loads the list of allowed log files from ~/.logfind.
+ * 4. The list of file names can be anything that the glob function
+ * allows. Refer to man 3 glob to see how this works. I suggest
+ * starting with just a flat list of exact files, and then add glob
+ * functionality.
+ * 5. You should output the matching lines as you scan, and try to
+ * match them as fast as possible.
  **/
 #include <stdio.h>
 #include <stdlib.h>
@@ -122,8 +131,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            fprintf(stderr, "Error: -o flag not passed.\n");
-            return 1;
+            printf("%s\n", argv[i]);
         }
     }
 
@@ -133,32 +141,41 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    size_t num_lines;
-    char **lines = read_logfind(full_path, &num_lines);
-    if (lines == NULL)
+    size_t num_log_files;
+    char **log_files = read_logfind(full_path, &num_log_files);
+    if (log_files == NULL)
     {
         free(full_path);
         return 1;
     }
 
-    // Print matched lines within each file
-    for (size_t i = 0; i < num_lines; i++)
+    // Search for log_files that contain the phrase
+    for (size_t i = 0; i < num_log_files; i++)
     {
-        FILE *fp = fopen(lines[i], "r");
+        FILE *fp = fopen(log_files[i], "r");
         if (fp == NULL)
         {
-            fprintf(stderr, "Error opening file: %s\n", lines[i]);
+            fprintf(stderr, "Error opening file: %s\n", log_files[i]);
             continue; // Move to the next file
         }
-        printf("[SEARCHING FILE]: %s for search string: %s\n", lines[i], search_string);
+        printf("Searching file %s for search string...\n", log_files[i]);
 
         int line_number = 1; // Initialize line number
         char line[MAX_LINE_LENGTH];
         while (fgets(line, MAX_LINE_LENGTH, fp))
         {
-            if (strstr(line, search_string) != NULL)
+            int found = 1; // Start by assuming the line matches
+            for (int j = 1; j < argc; j++)
             {
-                printf("[MATCH FOUND]: %s, Line %d: \"%s\"\n", lines[i], line_number, line);
+                if (strstr(line, argv[j]) == NULL)
+                {
+                    found = 0;
+                    break;
+                }
+            }
+            if (found)
+            {
+                printf("[MATCH FOUND]: %s, Line %d: %s\n", log_files[i], line_number, line);
             }
             line_number++;
         }
@@ -167,11 +184,11 @@ int main(int argc, char *argv[])
     }
 
     // Free allocated memory
-    for (size_t i = 0; i < num_lines; i++)
+    for (size_t i = 0; i < num_log_files; i++)
     {
-        free(lines[i]);
+        free(log_files[i]);
     }
-    free(lines);
+    free(log_files);
     free(full_path);
 
     return 0;
