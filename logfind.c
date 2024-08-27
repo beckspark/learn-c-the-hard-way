@@ -108,11 +108,11 @@ int main(int argc, char *argv[])
     if (argc == 1)
     {
         fprintf(stderr, "Usage: %s -o <search_string>\n", argv[0]);
-        fprintf(stderr, "Search for lines containing the string within log files defined in ~/.logfind\n");
+        fprintf(stderr, "Search for lines containing the string within log files defined in ~/.logfind.\nIf the '-o' flag is passed, use OR instead of AND for the search.");
         return 1;
     }
 
-    char *search_string = NULL;
+    int or_arg_pos = -1; // Initialize the or_arg_pos as -1, meaning "doesn't exist"
     // Find the -o flag, store the search_string
     for (int i = 1; i < argc; i++)
     {
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
         {
             if (i + 1 < argc)
             {
-                search_string = argv[i + 1];
+                or_arg_pos = i;
                 break;
             }
             else
@@ -128,10 +128,6 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "Error: no value passed after -o flag.\n");
                 return 1;
             }
-        }
-        else
-        {
-            printf("%s\n", argv[i]);
         }
     }
 
@@ -164,13 +160,25 @@ int main(int argc, char *argv[])
         char line[MAX_LINE_LENGTH];
         while (fgets(line, MAX_LINE_LENGTH, fp))
         {
-            int found = 1; // Start by assuming the line matches
-            for (int j = 1; j < argc; j++)
+            int found = 1;                                        // Start by assuming the lines match
+            int arg_len = (or_arg_pos == -1) ? argc : or_arg_pos; // Loop until either the length of argc or the position of the or flag, depending on if it's used
+            for (int j = 1; j < arg_len; j++)
             {
                 if (strstr(line, argv[j]) == NULL)
                 {
                     found = 0;
                     break;
+                }
+            }
+            if (or_arg_pos != -1) // Now check the OR strings
+            {
+                for (int j = or_arg_pos + 1; j < argc; j++)
+                {
+                    if (strstr(line, argv[j]) != NULL)
+                    {
+                        found = 1;
+                        break;
+                    }
                 }
             }
             if (found)
