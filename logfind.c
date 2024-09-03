@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glob.h>
 
 #define MAX_LINE_LENGTH 1024
 
@@ -74,16 +75,50 @@ char **read_logfind(const char *filename, size_t *num_lines_ptr)
         // Remove newline
         line[strcspn(line, "\n")] = '\0';
 
-        // Re-allocate memory if necessary
-        if (num_lines >= capacity)
+        // Check for a glob pattern
+        if (strpbrk(line, "*?[]{}"))
         {
-            capacity = capacity ? capacity * 2 : 16;
-            lines = realloc(lines, capacity * sizeof(char *));
-            if (lines == NULL)
+            // Expand glob
+            glob_t globbuf;
+            int ret = glob(line, 0, NULL, &globbuf);
+            if (ret == 0)
             {
-                fprintf(stderr, "Error re-allocating memory.\n");
-                fclose(fp);
-                return NULL;
+                // Iterate over matched files
+                for (size_t i = 0; i < globbuf.gl_pathc; i++)
+                {
+                    // Re-allocate memory if necessary
+                    if (num_lines >= capacity)
+                    {
+                        capacity = capacity ? capacity * 2 : 16;
+                        lines = realloc(lines, capacity * sizeof(char *));
+                        if (lines == NULL)
+                        {
+                            fprintf(stderr, "Error re-allocating memory.\n");
+                            globfree(&globbuf);
+                            fclose(fp);
+                            return NULL;
+                        }
+                    }
+                    // Copy the matched file name into the array
+                    lines[num_lines] = strdup(globbuf.gl_pathv[i]);
+                    num_lines++;
+                }
+            }
+            globfree(&globbuf);
+        }
+        else
+        {
+            // Re-allocate memory if necessary
+            if (num_lines >= capacity)
+            {
+                capacity = capacity ? capacity * 2 : 16;
+                lines = realloc(lines, capacity * sizeof(char *));
+                if (lines == NULL)
+                {
+                    fprintf(stderr, "Error re-allocating memory.\n");
+                    fclose(fp);
+                    return NULL;
+                }
             }
         }
 
@@ -107,8 +142,8 @@ int main(int argc, char *argv[])
     // Usage message if no argument is passed
     if (argc == 1)
     {
-        fprintf(stderr, "Usage: %s -o <search_string>\n", argv[0]);
-        fprintf(stderr, "Search for lines containing the string within log files defined in ~/.logfind.\nIf the '-o' flag is passed, use OR instead of AND for the search.");
+        fprintf(stderr, "Usage: %s <and_search_string> -o <or_search_string>\n", argv[0]);
+        fprintf(stderr, "Search for lines containing the string within log files defined in ~/.logfind.\nIf the '-o' flag is passed, use OR instead of AND for the terms that come after.");
         return 1;
     }
 
