@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <glob.h>
 
 #define MAX_LINE_LENGTH 1024
@@ -104,27 +105,34 @@ char **read_logfind(const char *filename, size_t *num_lines_ptr)
                     num_lines++;
                 }
             }
+            else
+            {
+                fprintf(stderr, "Error expanding glob pattern: %s\n.", line);
+            }
             globfree(&globbuf);
         }
         else
         {
-            // Re-allocate memory if necessary
-            if (num_lines >= capacity)
+            // If the line is not a glob pattern, check that it's a file
+            if (access(line, F_OK) == 0)
             {
-                capacity = capacity ? capacity * 2 : 16;
-                lines = realloc(lines, capacity * sizeof(char *));
-                if (lines == NULL)
+                // Re-allocate memory if necessary
+                if (num_lines >= capacity)
                 {
-                    fprintf(stderr, "Error re-allocating memory.\n");
-                    fclose(fp);
-                    return NULL;
+                    capacity = capacity ? capacity * 2 : 16;
+                    lines = realloc(lines, capacity * sizeof(char *));
+                    if (lines == NULL)
+                    {
+                        fprintf(stderr, "Error re-allocating memory.\n");
+                        fclose(fp);
+                        return NULL;
+                    }
                 }
+                // Copy line in to array
+                lines[num_lines] = strdup(line);
+                num_lines++;
             }
         }
-
-        // Copy the line into the array
-        lines[num_lines] = strdup(line);
-        num_lines++;
     }
 
     fclose(fp);
