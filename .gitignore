@@ -1,2 +1,4 @@
+# Exclude .vscode
+.vscode
 # Exclude epub files
 *.epub
