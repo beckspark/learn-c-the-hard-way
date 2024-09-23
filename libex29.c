@@ -13,7 +13,13 @@ int uppercase(const char *msg)
 {
     int i = 0;
 
-    // BUG: \0 termination problems
+    // Handle NULL string
+    if (msg == NULL)
+    {
+        fprintf(stderr, "Error: Input string is null.\n");
+        return 1;
+    }
+
     for (i = 0; msg[i] != '\0'; i++)
     {
         printf("%c", toupper(msg[i]));
@@ -28,7 +34,13 @@ int lowercase(const char *msg)
 {
     int i = 0;
 
-    // BUG: \0 termination problems
+    // Handle NULL string
+    if (msg == NULL)
+    {
+        fprintf(stderr, "Error: Input string is null.\n");
+        return 1;
+    }
+
     for (i = 0; msg[i] != '\0'; i++)
     {
         printf("%c", tolower(msg[i]));
