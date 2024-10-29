@@ -1,5 +1,5 @@
 CFLAGS=-g -O2 -Wall -Wextra -Isrc -rdynamic -DNDEBUG $(OPTFLAGS)
-LIBS=-ldl $(OPTLIBS)
+LIBS=$(OPTLIBS)
 PREFIX?=/usr/local
 
 SOURCES=$(wildcard src/**/*.c src/*.c)
@@ -8,11 +8,15 @@ OBJECTS=$(patsubst %.c,%.o,$(SOURCES))
 TEST_SRC=$(wildcard tests/*_tests.c)
 TESTS=$(patsubst %.c,%,$(TEST_SRC))
 
-TARGET=build/libYOUR_LIBRARY.a
-SO_TARGET=$(patsubst %.a,%.so,$(TARGET))
+TARGET=build/liblcthw.a
+
+OS=$(shell lsb_release -si)
+ifeq ($(OS),Ubuntu)
+		LDLIBS=-llcthw -lbsd -L./build -lm
+endif
 
 # The Target Build
-all: $(TARGET) $(SO_TARGET) tests
+all: $(TARGET) tests
 
 dev: CFLAGS=-g -Wall -Isrc -Wall -Wextra $(OPTFLAGS)
 dev: all
@@ -21,8 +25,6 @@ $(TARGET): CFLAGS += -fPIC
 $(TARGET): build $(OBJECTS)
 	ar rcs $@ $(OBJECTS)
 	ranlib $@
-$(SO_TARGET): $(TARGET) $(OBJECTS)
-	$(CC) -shared -o $@ $(OBJECTS)
 
 build:
 	@mkdir -p build
@@ -30,9 +32,12 @@ build:
 
 # The Unit Tests
 .PHONY: tests
-tests: CFLAGS += $(TARGET)
+tests: LDLIBS += $(TARGET)
 tests: $(TESTS)
 	sh ./tests/runtests.sh
+
+valgrind:
+	VALGRIND="valgrind --log-file=/tmp/valgrind-%p.log" $(MAKE)
 
 # The Cleaner
 clean:
