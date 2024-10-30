@@ -31,14 +31,14 @@ void List_clear_destroy(List * list)
     List_destroy(list);
 }
 
-void List_push(List *list, void *value)
+void List_push(List * list, void *value)
 {
     ListNode *node = calloc(1, sizeof(ListNode));
     check_mem(node);
 
     node->value = value;
 
-    if(list->last = NULL) {
+    if (list->last == NULL) {
         list->first = node;
         list->last = node;
     } else {
@@ -66,7 +66,7 @@ void List_unshift(List * list, void *value)
 
     node->value = value;
 
-    if(list->first == NULL) {
+    if (list->first == NULL) {
         list->first = node;
         list->last = node;
     } else {
@@ -92,7 +92,7 @@ void *List_remove(List * list, ListNode * node)
     void *result = NULL;
 
     check(list->first && list->last, "List is empty.");
-    check(node, "node can't be NULL.");
+    check(node, "node can't be NULL");
 
     if (node == list->first && node == list->last) {
         list->first = NULL;
